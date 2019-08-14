@@ -13,7 +13,13 @@ import org.bukkit.inventory.ItemStack
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class PageManager(val player: Player, val paginator: Paginator) : InventoryHolder
+class PageManager(
+    val player: Player,
+    private val pageListener: PageListener,
+    val name: String = "",
+    private val maxSize: Int = -1
+) :
+    InventoryHolder
 {
 
     private val inventories: MutableList<InventoryPage> = ArrayList()
@@ -96,7 +102,10 @@ class PageManager(val player: Player, val paginator: Paginator) : InventoryHolde
 
     fun addInventory(inventoryPage: InventoryPage)
     {
-        inventories.add(inventoryPage)
+        if (maxSize > 0 && inventories.size >= maxSize)
+        {
+            inventories.add(inventoryPage)
+        }
     }
 
     fun cleanUpInventory(): Boolean
@@ -155,15 +164,16 @@ class PageManager(val player: Player, val paginator: Paginator) : InventoryHolde
 
     fun displayInventory(delay: Long = 1)
     {
+        val inventory = inventories[selectedInventory].inventory
         when (delay)
         {
-            0L -> player.openInventory(inventories[selectedInventory].inventory)
-            1L -> paginator.main.server.scheduler.runTask(
-                paginator.main
-            ) { -> player.openInventory(inventories[selectedInventory].inventory) }
-            else -> paginator.main.server.scheduler.runTaskLater(
-                paginator.main,
-                { -> inventories[selectedInventory].inventory },
+            0L -> player.openInventory(inventory)
+            1L -> pageListener.main.server.scheduler.runTask(
+                pageListener.main
+            ) { -> player.openInventory(inventory) }
+            else -> pageListener.main.server.scheduler.runTaskLater(
+                pageListener.main,
+                { -> player.openInventory(inventory) },
                 delay
             )
         }

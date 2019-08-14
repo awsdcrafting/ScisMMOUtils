@@ -5,7 +5,7 @@ import eu.scisneromam.mc.scismmoutils.commands.HammerCommand
 import eu.scisneromam.mc.scismmoutils.commands.MinerCommand
 import eu.scisneromam.mc.scismmoutils.database.BreakXPLevelEntity
 import eu.scisneromam.mc.scismmoutils.database.DBConnection
-import eu.scisneromam.mc.scismmoutils.inventory.Paginator
+import eu.scisneromam.mc.scismmoutils.inventory.PageListener
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
 import eu.scisneromam.mc.scismmoutils.reflection.NMSBlockBreak
 import eu.scisneromam.mc.scismmoutils.reflection.NMSLoader
@@ -42,7 +42,7 @@ class Main : JavaPlugin()
     //CommandManager
     lateinit var commandManager: PaperCommandManager
     //ItemSave
-    lateinit var paginator: Paginator
+    lateinit var pageListener: PageListener
 
 
     private val testOnly = false
@@ -67,8 +67,8 @@ class Main : JavaPlugin()
         blockBreakListener = BlockBreakListener(this)
         registerListener(blockBreakListener)
 
-        paginator = Paginator(this)
-        registerListener(paginator)
+        pageListener = PageListener(this)
+        registerListener(pageListener)
 
         dbConnection.setupDB()
 

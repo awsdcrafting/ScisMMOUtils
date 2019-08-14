@@ -117,7 +117,7 @@ class HammerCommand(val main: Main) : BaseCommand()
     @CommandCompletion("info|give|show|list")
     fun onItems(player: Player, @Optional arg: String?)
     {
-        val itemSave = main.paginator
+        val itemSave = main.pageListener
         if (arg == null)
         {
             player.sendPrefixedMessage("//todo")

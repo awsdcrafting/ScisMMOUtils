@@ -14,9 +14,8 @@ import org.bukkit.inventory.ItemStack
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class Paginator(main: Main) : EventListener<InventoryClickEvent>(main)
+class PageListener(main: Main) : EventListener<InventoryClickEvent>(main)
 {
-    private val pageManagers: MutableMap<Player, PageManager> = HashMap()
 
     @EventHandler
     override fun onEvent(event: InventoryClickEvent)
@@ -24,21 +23,6 @@ class Paginator(main: Main) : EventListener<InventoryClickEvent>(main)
         (event.inventory.holder as? PageManager)?.executeListener(event)
     }
 
-    private fun getPageManager(player: Player) = pageManagers.getOrPut(player, { PageManager(player, this) })
 
-    fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
-    {
-        getPageManager(player).addItems(itemStacks)
-    }
-
-    fun fillInventory(player: Player)
-    {
-        getPageManager(player).fillPlayerInventory()
-    }
-
-    fun openInventory(player: Player)
-    {
-        getPageManager(player).displayInventory()
-    }
 
 }

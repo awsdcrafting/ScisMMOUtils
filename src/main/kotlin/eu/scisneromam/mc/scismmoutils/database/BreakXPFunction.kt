@@ -56,6 +56,8 @@ class BreakXPFunction(database: DBConnection, cache: Boolean = true) : XPFunctio
             val entity = getXPLevelEntity(xpLevel.uuid)
             entity.level = xpLevel.level
             entity.xp = xpLevel.xp
+
+            flushCache()
         }
     }
 

@@ -3,6 +3,7 @@ package eu.scisneromam.mc.scismmoutils.listener
 import eu.scisneromam.mc.scismmoutils.functions.Function
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
+import eu.scisneromam.mc.scismmoutils.inventory.PageManager
 import eu.scisneromam.mc.scismmoutils.main.Main
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import kotlinx.coroutines.GlobalScope
@@ -51,6 +52,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
     private val locations: MutableMap<Location, HandledLocation> = ConcurrentHashMap()
     private val activatedFunctionsPerPlayer: MutableMap<Player, MutableSet<Function<BlockBreakEvent>>> =
         ConcurrentHashMap()
+    private val pageManagers: MutableMap<Player, PageManager> = HashMap()
 
     val miner: Miner = Miner(this)
     val hammer: Hammer = Hammer(this)
@@ -96,7 +98,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
                     val items = itemsPerPlayer.remove(entry.key)
                     if (items != null && items.isNotEmpty())
                     {
-                        main.paginator.addItems(entry.key, items)
+                        addItems(entry.key, items)
                     }
                 }
             } while (todo > 0 && maxTodo > 0)
@@ -198,6 +200,24 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
                 break
             }
         }
+    }
+
+    private fun getPageManager(player: Player) =
+        pageManagers.getOrPut(player, { PageManager(player, main.pageListener) })
+
+    fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
+    {
+        getPageManager(player).addItems(itemStacks)
+    }
+
+    fun fillInventory(player: Player)
+    {
+        getPageManager(player).fillPlayerInventory()
+    }
+
+    fun openInventory(player: Player)
+    {
+        getPageManager(player).displayInventory()
     }
 
 }

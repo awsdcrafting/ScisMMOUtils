@@ -45,6 +45,7 @@ class Miner(override val listener: BlockBreakListener) : Function<BlockBreakEven
                 ores.add(value)
             }
         }
+        ores.add(Material.GLOWSTONE)
     }
 
     override fun willHandle(event: BlockBreakEvent): Boolean

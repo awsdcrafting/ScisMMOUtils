@@ -88,12 +88,12 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
             mode.depth
         } else
         {
-            mode.leftRightSize
+            mode.leftRightSize * 2
         }
 
         var lrMod = 0
         var udMod = 0
-        val subSets = if ((lrRad * 2) * (udRad * 2) * (depth * 2) > listener.batchSize * 15)
+        val subSets = if ((lrRad * 2) * (udRad * 2) * (depth) > listener.batchSize * 15)
         {
             player.sendPrefixedMessage("Whatever you are doing, you are breaking sooo many blocks, that we are splitting it into smaller subsets xD")
             true

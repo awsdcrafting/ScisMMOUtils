@@ -17,7 +17,7 @@ import java.util.function.Consumer
  */
 class InventoryPage(val player: Player, val pageManager: PageManager, val size: Int = 45)
 {
-    val inventory: Inventory = Bukkit.createInventory(pageManager, size + 9)
+    val inventory: Inventory = Bukkit.createInventory(pageManager, size + 9, pageManager.name)
     val buttons: MutableMap<Int, GuiButton> = HashMap()
 
     init
