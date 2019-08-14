@@ -50,6 +50,7 @@ class NMSBlockBreak(val nmsLoader: NMSLoader)
         if (!wasSuccessful)
         {
             block.breakNaturally(player.inventory.itemInMainHand)
+            return
         }
 
         try
