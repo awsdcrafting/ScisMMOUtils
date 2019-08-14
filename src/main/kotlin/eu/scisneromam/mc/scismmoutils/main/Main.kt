@@ -7,8 +7,9 @@ import eu.scisneromam.mc.scismmoutils.database.BreakXPLevelEntity
 import eu.scisneromam.mc.scismmoutils.database.DBConnection
 import eu.scisneromam.mc.scismmoutils.inventory.Paginator
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
-import eu.scisneromam.mc.scismmoutils.utils.MinecraftUtils
-import eu.scisneromam.mc.scismmoutils.utils.NMSAbstract
+import eu.scisneromam.mc.scismmoutils.reflection.NMSBlockBreak
+import eu.scisneromam.mc.scismmoutils.reflection.NMSLoader
+import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.event.Listener
@@ -31,7 +32,9 @@ class Main : JavaPlugin()
     }
 
     //nms
-    lateinit var nmsAbstract: NMSAbstract
+    lateinit var nmsLoader: NMSLoader
+    lateinit var nmsBlockBreak: NMSBlockBreak
+
     //db
     lateinit var dbConnection: DBConnection
     //listener
@@ -40,6 +43,7 @@ class Main : JavaPlugin()
     lateinit var commandManager: PaperCommandManager
     //ItemSave
     lateinit var paginator: Paginator
+
 
     private val testOnly = false
 
@@ -51,8 +55,10 @@ class Main : JavaPlugin()
         if (testOnly)
             return
 
-        nmsAbstract =
-            NMSAbstract(Bukkit.getServer().javaClass.getPackage().name.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[3])
+        nmsLoader =
+            NMSLoader(Bukkit.getServer().javaClass.getPackage().name.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[3])
+        nmsBlockBreak = NMSBlockBreak(nmsLoader)
+
         dbConnection = DBConnection(this)
 
 
@@ -79,7 +85,7 @@ class Main : JavaPlugin()
     {
         dbConnection.saveAll()
 
-        MinecraftUtils.debug(dbConnection.transaction {
+        MCUtils.debug(dbConnection.transaction {
             BreakXPLevelEntity.all().map { it.toXPLevel().toString() }.joinToString { "\n" }
         }, "Main")
     }

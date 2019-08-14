@@ -4,7 +4,7 @@ import eu.scisneromam.mc.scismmoutils.functions.Function
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
 import eu.scisneromam.mc.scismmoutils.main.Main
-import eu.scisneromam.mc.scismmoutils.utils.MinecraftUtils
+import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Location
@@ -83,12 +83,12 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
                     val sub = entry.value.take(max)
                     sub.forEach { location: Location ->
-                        MinecraftUtils.breakBlock(
+                        MCUtils.breakBlock(
                             main,
                             location.block,
                             entry.key,
                             entry.key.inventory.itemInMainHand,
-                            "BatchBreaker", MinecraftUtils.DEBUG
+                            "BatchBreaker", MCUtils.DEBUG
                         )
                     }
                     entry.value.removeAll(sub)
@@ -120,7 +120,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
     fun addBreakLocations(player: Player, locations: List<Location>)
     {
-        MinecraftUtils.debug("BreakLocations are getting added", "BatchBreaker")
+        MCUtils.debug("BreakLocations are getting added", "BatchBreaker")
         for (location in locations)
         {
             this.locations[location] = HandledLocation(location)
@@ -162,7 +162,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
             return
         }
 
-        MinecraftUtils.debug("Handling event $event", "BatchBreaker")
+        MCUtils.debug("Handling event $event", "BatchBreaker")
 
         val loc = locations.getOrDefault(event.block.location, null)
 

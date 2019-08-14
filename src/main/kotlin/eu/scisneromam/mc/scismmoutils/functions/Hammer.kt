@@ -1,8 +1,8 @@
 package eu.scisneromam.mc.scismmoutils.functions
 
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
-import eu.scisneromam.mc.scismmoutils.utils.MinecraftUtils
-import eu.scisneromam.mc.scismmoutils.utils.MinecraftUtils.getBlocksInLine
+import eu.scisneromam.mc.scismmoutils.utils.MCUtils
+import eu.scisneromam.mc.scismmoutils.utils.MCUtils.getBlocksInLine
 import eu.scisneromam.mc.scismmoutils.utils.dropsAreEmpty
 import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import org.bukkit.Location
@@ -28,7 +28,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
 
     override fun willHandle(event: BlockBreakEvent): Boolean
     {
-        MinecraftUtils.debug("Handling event $event", "Hammer")
+        MCUtils.debug("Handling event $event", "Hammer")
 
         if (event.block.dropsAreEmpty())
         {
@@ -109,7 +109,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
             {
                 player.sendPrefixedMessage("${mod1 + lrRad} of ${lrRad * 2}")
             }
-            MinecraftUtils.debug("$mod1 of $lrRad", "Hammer")
+            MCUtils.debug("$mod1 of $lrRad", "Hammer")
             when (player.facing)
             {
                 BlockFace.NORTH -> lrMod = mod1

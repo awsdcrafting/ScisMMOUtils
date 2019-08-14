@@ -1,7 +1,7 @@
 package eu.scisneromam.mc.scismmoutils.functions
 
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
-import eu.scisneromam.mc.scismmoutils.utils.MinecraftUtils
+import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import eu.scisneromam.mc.scismmoutils.utils.dropsAreEmpty
 import eu.scisneromam.mc.scismmoutils.utils.isInMaxDistance
 import org.bukkit.Location
@@ -49,10 +49,10 @@ class Miner(override val listener: BlockBreakListener) : Function<BlockBreakEven
 
     override fun willHandle(event: BlockBreakEvent): Boolean
     {
-        MinecraftUtils.debug("Handling event $event", "Miner")
+        MCUtils.debug("Handling event $event", "Miner")
         if (event.block.dropsAreEmpty())
         {
-            MinecraftUtils.debug("Stopping because there would be no drops", "Miner")
+            MCUtils.debug("Stopping because there would be no drops", "Miner")
             return false
         }
 
@@ -113,7 +113,7 @@ class Miner(override val listener: BlockBreakListener) : Function<BlockBreakEven
 
     private fun findLocations(player: Player, start: Location, materials: List<Material>, maxDistance: Int = 3)
     {
-        MinecraftUtils.debug("Finding Locations", "Miner")
+        MCUtils.debug("Finding Locations", "Miner")
         val finishedLocations: MutableSet<Location> = HashSet()
         val locations: MutableSet<Location> = HashSet()
 
@@ -142,21 +142,21 @@ class Miner(override val listener: BlockBreakListener) : Function<BlockBreakEven
 
                         when
                         {
-                            block.blockData.material !in materials -> MinecraftUtils.debug(
+                            block.blockData.material !in materials -> MCUtils.debug(
                                 "Not Selecting $block because it is the wrong material",
                                 "Miner"
                             )
-                            !bloc.isInMaxDistance(start, maxDistance) -> MinecraftUtils.debug(
+                            !bloc.isInMaxDistance(start, maxDistance) -> MCUtils.debug(
                                 "Not Selecting $block because it is not in range",
                                 "Miner"
                             )
-                            finishedLocations.contains(bloc) -> MinecraftUtils.debug(
+                            finishedLocations.contains(bloc) -> MCUtils.debug(
                                 "Not Selecting $block because it is already selected",
                                 "Miner"
                             )
                             else ->
                             {
-                                MinecraftUtils.debug(
+                                MCUtils.debug(
                                     "Selecting $block because it is in range and the valid material",
                                     "Miner"
                                 )
