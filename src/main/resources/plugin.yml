@@ -1,6 +1,6 @@
-name: ScisUtils
+name: ScisMMOUtils
 version: "1.0"
-main: eu.scisneromam.mc.scisutils.Main
+main: eu.scisneromam.mc.scismmoutils.main.Main
 authors: [scisneromam]
 description: Has some cool functions
 api-version: "1.14"
