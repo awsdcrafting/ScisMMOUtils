@@ -1,0 +1,36 @@
+name: ScisUtils
+version: "1.0"
+main: eu.scisneromam.mc.scisutils.Main
+authors: [scisneromam]
+description: Has some cool functions
+api-version: "1.14"
+commands:
+  hammer:
+    description: Toggles the hammer mode
+    usage: /hammer <mode | radius>
+  imamagician:
+    description: Toggles the repair mode
+    usage: /imamagician
+  miner:
+    description: Toggles the miner mode
+    usage: /miner
+
+permissions:
+  scisUtils.*:
+    children:
+      - scisUtils.hammer.use
+      - scisUtils.miner.use
+      - scisUtils.magic.use
+    default: op
+  scisUtils.cheat.*:
+    children:
+      - scisUtils.cheat.keepTool
+    default: op
+  scisUtils.cheat.keepTool:
+    default: false
+  scisUtils.hammer.use:
+    default: true
+  scisUtils.miner.use:
+    default: true
+  scisUtils.magic.use:
+    default: true
