@@ -5,6 +5,7 @@ import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
 import eu.scisneromam.mc.scismmoutils.inventory.PageManager
 import eu.scisneromam.mc.scismmoutils.inventory.PageSortedPageManager
+import eu.scisneromam.mc.scismmoutils.inventory.TypeSortedPageManager
 import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
@@ -177,7 +178,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
     }
 
     private fun getPageManager(player: Player) =
-        pageManagers.getOrPut(player, { PageSortedPageManager(player, "BlockBreak Inventory", allowStorage = false) })
+        pageManagers.getOrPut(player, { TypeSortedPageManager(player, "BlockBreak Inventory", allowStorage = false) })
 
     fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
     {

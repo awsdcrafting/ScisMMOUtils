@@ -67,6 +67,23 @@ open class PageManager(
         return inventoryPages[index]
     }
 
+    open fun isEmpty(): Boolean
+    {
+        if (size > 1)
+        {
+            return false
+        }
+        for (inventoryPage in inventoryPages)
+        {
+            if (!inventoryPage.isEmpty())
+            {
+                return false
+            }
+        }
+
+        return true
+    }
+
     //todo fix ConcurrentModificationException
     open fun addItems(itemStacks: MutableCollection<ItemStack>)
     {

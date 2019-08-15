@@ -3,6 +3,7 @@ package eu.scisneromam.mc.scismmoutils.inventory
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.function.Consumer
 
@@ -20,12 +21,16 @@ class PageSortedPageManager(
     maxSize: Int = -1,
     sizePerPage: Int = 45,
     allowStorage: Boolean = true
-) : PageManager(player, "$name Pages", parent, -1, 45, false)
+) : PageManager(player, name, parent, -1, 45, false)
 {
     val pageManager: PageManager = PageManager(player, name, this, maxSize, sizePerPage, allowStorage)
 
     var lastSlot: Pair<Int, Int> = Pair(0, -1)
 
+    init
+    {
+        addButton(createButton(0))
+    }
 
     override fun addItems(itemStacks: MutableCollection<ItemStack>)
     {
@@ -35,6 +40,16 @@ class PageSortedPageManager(
     override fun fillPlayerInventory()
     {
         pageManager.fillPlayerInventory()
+    }
+
+    override fun isEmpty(): Boolean
+    {
+        return pageManager.isEmpty()
+    }
+
+    override fun getInventory(): Inventory
+    {
+        return pageManager.inventory
     }
 
     fun createButton(pageNumber: Int): GuiButton
@@ -67,12 +82,14 @@ class PageSortedPageManager(
             lastSlot++
             addButton(createButton(lastSlot))
         }
+
+
         super.displayInventory(delay)
     }
 
     fun removeLastButton()
     {
-        inventoryPages[lastSlot.first].removeItem(lastSlot.second)
+        inventoryPages[lastSlot.first].inventory.clear(lastSlot.second)
 
         lastSlot = if (lastSlot.second - 1 < 0)
         {
@@ -102,6 +119,7 @@ class PageSortedPageManager(
             Pair(lastSlot.first, lastSlot.second + 1)
         }
         getInventory(lastSlot.first).setGuiButton(lastSlot.second, guiButton)
+
     }
 
 }
