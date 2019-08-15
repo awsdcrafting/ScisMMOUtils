@@ -20,7 +20,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.collections.ArrayList
-import kotlin.math.min
 
 /**
  * Project: ScisUtils
@@ -42,12 +41,10 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
     companion object
     {
-        const val DEFAULT_BATCH_SIZE: Int = 2_500
+        const val DEFAULT_BATCH_SIZE: Int = 500
     }
 
-    var batchSize: Int = DEFAULT_BATCH_SIZE
-    var batchSizePerPlayer: Int = batchSize / 10
-    private val locationsPerPlayer: MutableMap<Player, MutableSet<Location>> = ConcurrentHashMap()
+    var batchSizePerPlayer: Int = DEFAULT_BATCH_SIZE
     private val itemsPerPlayer: MutableMap<Player, MutableList<ItemStack>> = ConcurrentHashMap()
     private val locations: MutableMap<Location, HandledLocation> = ConcurrentHashMap()
     private val activatedFunctionsPerPlayer: MutableMap<Player, MutableSet<Function<BlockBreakEvent>>> =
@@ -60,49 +57,12 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
     init
     {
-        batchSize = main.config.getInt("batchSize")
-        if (batchSize == 0)
-        {
-            batchSize = DEFAULT_BATCH_SIZE
-        }
         batchSizePerPlayer = main.config.getInt("batchSizePerPlayer")
         if (batchSizePerPlayer == 0)
         {
-            batchSizePerPlayer = batchSize / 10
+            batchSizePerPlayer = DEFAULT_BATCH_SIZE
         }
 
-
-        main.server.scheduler.scheduleSyncRepeatingTask(main, {
-            var todo = batchSize
-            var maxTodo: Int
-            do
-            {
-                maxTodo = 0
-                for (entry in locationsPerPlayer)
-                {
-                    maxTodo += entry.value.size
-                    val max = min(min(batchSizePerPlayer, todo), entry.value.size)
-
-                    val sub = entry.value.take(max)
-                    sub.forEach { location: Location ->
-                        MCUtils.breakBlock(
-                            main,
-                            location.block,
-                            entry.key,
-                            entry.key.inventory.itemInMainHand,
-                            "BatchBreaker", MCUtils.DEBUG
-                        )
-                    }
-                    entry.value.removeAll(sub)
-                    todo -= max
-                    val items = itemsPerPlayer.remove(entry.key)
-                    if (items != null && items.isNotEmpty())
-                    {
-                        addItems(entry.key, items)
-                    }
-                }
-            } while (todo > 0 && maxTodo > 0)
-        }, 1L, 1L)
     }
 
 
@@ -123,11 +83,24 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
     fun addBreakLocations(player: Player, locations: List<Location>)
     {
         MCUtils.debug("BreakLocations are getting added", "BatchBreaker")
-        for (location in locations)
+        val list = ArrayList(locations)
+        for (location in list)
         {
             this.locations[location] = HandledLocation(location)
         }
-        locationsPerPlayer.getOrPut(player, { ConcurrentHashMap.newKeySet() }).addAll(locations)
+        main.server.scheduler.runTask(main) {
+            ->
+            for (location in list)
+            {
+                MCUtils.breakBlock(
+                    main,
+                    location.block,
+                    player,
+                    player.inventory.itemInMainHand,
+                    "BatchBreaker", MCUtils.DEBUG
+                )
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -170,7 +143,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
         if (loc != null)
         {
-            loc.handledDrop = true
+            loc.handledBreak = true
             if (loc.isCompletelyHandled())
             {
                 locations.remove(event.block.location)
