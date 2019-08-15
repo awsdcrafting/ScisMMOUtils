@@ -30,8 +30,8 @@ class ItemCreator(material: Material)
 
     fun setHeadOwner(owner: OfflinePlayer): ItemCreator
     {
-        val itemMeta = itemStack.itemMeta as? SkullMeta
-        if ((itemStack.type == Material.PLAYER_HEAD || itemStack.type == Material.PLAYER_WALL_HEAD) && itemMeta != null)
+        val itemMeta = itemStack.itemMeta
+        if ((itemStack.type == Material.PLAYER_HEAD || itemStack.type == Material.PLAYER_WALL_HEAD) && itemMeta is SkullMeta)
         {
             itemMeta.owningPlayer = owner
         }
@@ -41,7 +41,7 @@ class ItemCreator(material: Material)
     fun setLore(lore: List<String>): ItemCreator
     {
         val itemMeta = itemStack.itemMeta
-        if (itemMeta is Damageable)
+        if (itemMeta != null)
         {
             itemMeta.lore = lore
         }

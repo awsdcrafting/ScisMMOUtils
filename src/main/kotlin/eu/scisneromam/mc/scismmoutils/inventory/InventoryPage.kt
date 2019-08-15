@@ -1,6 +1,5 @@
 package eu.scisneromam.mc.scismmoutils.inventory
 
-import eu.scisneromam.mc.scismmoutils.main.Main
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -57,10 +56,8 @@ class InventoryPage(
             ItemCreator(Material.PAPER).setDisplayName("Page $pageNumber").create()
         } else
         {
-            ItemCreator(Material.PLAYER_HEAD).setDisplayName("Page $pageNumber")
-                .setLore(listOf("Click here to go up")).setHeadOwner(
-                    Main.MHF_ArrowUP_Player
-                ).create()
+            ItemCreator(Material.PAPER).setDisplayName("Page $pageNumber")
+                .setLore(listOf("Click here to go up")).create()
         }
         setGuiButton(size + 4, GuiButton.create(pageIndicatorStack, Consumer {
             it.isCancelled = true
