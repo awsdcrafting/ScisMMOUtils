@@ -3,6 +3,7 @@ package eu.scisneromam.mc.scismmoutils.inventory
 import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
@@ -17,12 +18,21 @@ import org.bukkit.inventory.ItemStack
 open class PageManager(
     val player: Player,
     val name: String = "",
-    var maxSize: Int = -1
+    val parent: PageManager? = null,
+    var maxSize: Int = -1,
+    val sizePerPage: Int = 45,
+    val allowStorage: Boolean = true
 ) :
     InventoryHolder
 {
 
     protected val inventoryPages: MutableList<InventoryPage> = ArrayList()
+
+    val size: Int
+        get()
+        {
+            return inventoryPages.size
+        }
 
     init
     {
@@ -44,6 +54,17 @@ open class PageManager(
     override fun getInventory(): Inventory
     {
         return inventoryPages[selectedInventory].inventory
+    }
+
+    fun getInventory(index: Int): InventoryPage
+    {
+        val index = when
+        {
+            index < 0 -> 0
+            index >= size -> size - 1
+            else -> index
+        }
+        return inventoryPages[index]
     }
 
     //todo fix ConcurrentModificationException
@@ -108,7 +129,7 @@ open class PageManager(
 
     fun createInventory(): InventoryPage
     {
-        return InventoryPage(player, this)
+        return InventoryPage(player, this, size = sizePerPage, parent = parent, allowStorage = allowStorage)
     }
 
     fun addInventory(inventoryPage: InventoryPage)
@@ -141,19 +162,23 @@ open class PageManager(
 
     fun selectNextInventory()
     {
-        selectedInventory++
-        if (selectedInventory >= inventoryPages.size)
+        if (selectedInventory >= inventoryPages.size - 1)
         {
             selectedInventory = 0
+        } else
+        {
+            selectedInventory++
         }
     }
 
     fun selectPreviousInventory()
     {
-        selectedInventory--
-        if (selectedInventory < 0)
+        if (selectedInventory <= 0)
         {
             selectedInventory = inventoryPages.size - 1
+        } else
+        {
+            selectedInventory--
         }
     }
 
@@ -177,7 +202,7 @@ open class PageManager(
         displayInventory(delay)
     }
 
-    fun displayInventory(delay: Long = 1)
+    open fun displayInventory(delay: Long = 1)
     {
         val inventoryPage = inventoryPages[selectedInventory]
         inventoryPage.pageNumber = selectedInventory + 1
@@ -198,7 +223,18 @@ open class PageManager(
         }
     }
 
+    fun displayInventory(index: Int, delay: Long = 1)
+    {
+        selectedInventory = index
+        displayInventory(delay)
+    }
+
     fun executeListener(event: InventoryClickEvent)
+    {
+        inventoryPages[selectedInventory].executeListener(event)
+    }
+
+    fun executeListener(event: InventoryDragEvent)
     {
         inventoryPages[selectedInventory].executeListener(event)
     }

@@ -5,7 +5,7 @@ import eu.scisneromam.mc.scismmoutils.commands.HammerCommand
 import eu.scisneromam.mc.scismmoutils.commands.MinerCommand
 import eu.scisneromam.mc.scismmoutils.database.BreakXPLevelEntity
 import eu.scisneromam.mc.scismmoutils.database.DBConnection
-import eu.scisneromam.mc.scismmoutils.inventory.PageListener
+import eu.scisneromam.mc.scismmoutils.inventory.InventoryListener
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
 import eu.scisneromam.mc.scismmoutils.reflection.NMSBlockBreak
 import eu.scisneromam.mc.scismmoutils.reflection.NMSLoader
@@ -14,6 +14,7 @@ import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.*
 
 /**
  * Project: ScisUtils
@@ -30,6 +31,11 @@ class Main : JavaPlugin()
         private val go = ChatColor.GOLD.toString()
         val PREFIX: String = "$r[${go}ScisUtils$r] "
         lateinit var MAIN: Main
+
+        val MHF_ArrowUP_Player by lazy {
+            MAIN.server.getOfflinePlayer(UUID.fromString("fef039ef-e6cd-4987-9c84-26a3e6134277"))
+        }
+
     }
 
     //nms
@@ -43,7 +49,7 @@ class Main : JavaPlugin()
     //CommandManager
     lateinit var commandManager: PaperCommandManager
     //ItemSave
-    lateinit var pageListener: PageListener
+    lateinit var inventoryListener: InventoryListener
 
 
     private val testOnly = false
@@ -70,8 +76,8 @@ class Main : JavaPlugin()
         blockBreakListener = BlockBreakListener()
         registerListener(blockBreakListener)
 
-        pageListener = PageListener()
-        registerListener(pageListener)
+        inventoryListener = InventoryListener()
+        registerListener(inventoryListener)
 
         dbConnection.setupDB()
 

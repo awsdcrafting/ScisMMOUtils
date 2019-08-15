@@ -4,6 +4,7 @@ import eu.scisneromam.mc.scismmoutils.functions.Function
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
 import eu.scisneromam.mc.scismmoutils.inventory.PageManager
+import eu.scisneromam.mc.scismmoutils.inventory.PageSortedPageManager
 import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
@@ -33,7 +34,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
 
     companion object
     {
-        const val DEFAULT_BATCH_SIZE: Int = 500
+        const val DEFAULT_BATCH_SIZE: Int = 250
     }
 
     var batchSizePerPlayer: Int = DEFAULT_BATCH_SIZE
@@ -60,7 +61,10 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
 
             for ((player, items) in itemsPerPlayer)
             {
-                addItems(player, ArrayList(items))
+                val itemsList = ArrayList(items)
+                items.removeAll(itemsList)
+                addItems(player, itemsList)
+
             }
 
         }, 4L, 4L)
@@ -90,7 +94,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
         {
             this.locations.add(HandledLocation(location))
         }
-        MAIN.server.scheduler.scheduleSyncDelayedTask(MAIN) {
+        MAIN.server.scheduler.runTask(MAIN) {
             ->
             for (location in list)
             {
@@ -126,8 +130,6 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
 
         itemsPerPlayer.getOrPut(event.player, { ArrayList() }).addAll(event.items.map { it.itemStack })
         //event.items.clear()
-
-
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -175,7 +177,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
     }
 
     private fun getPageManager(player: Player) =
-        pageManagers.getOrPut(player, { PageManager(player, "BlockBreak Inventory") })
+        pageManagers.getOrPut(player, { PageSortedPageManager(player, "BlockBreak Inventory", allowStorage = false) })
 
     fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
     {

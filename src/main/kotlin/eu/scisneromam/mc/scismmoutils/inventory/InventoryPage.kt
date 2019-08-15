@@ -1,9 +1,11 @@
 package eu.scisneromam.mc.scismmoutils.inventory
 
+import eu.scisneromam.mc.scismmoutils.main.Main
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.function.Consumer
@@ -15,7 +17,14 @@ import java.util.function.Consumer
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class InventoryPage(val player: Player, val pageManager: PageManager, var pageNumber: Int = 1, val size: Int = 45)
+class InventoryPage(
+    val player: Player,
+    val pageManager: PageManager,
+    var pageNumber: Int = 1,
+    val parent: PageManager? = null,
+    val size: Int = 45,
+    val allowStorage: Boolean = true
+)
 {
     val inventory: Inventory = Bukkit.createInventory(pageManager, size + 9, pageManager.name)
     val buttons: MutableMap<Int, GuiButton> = HashMap()
@@ -36,15 +45,27 @@ class InventoryPage(val player: Player, val pageManager: PageManager, var pageNu
         val hotBarStack = ItemCreator(Material.GRAY_STAINED_GLASS_PANE).setDisplayName("").create()
         for (i in 1..7)
         {
-            setGuiButton(size + i, createGuiButton(hotBarStack, Consumer { it.isCancelled = true }))
+            setGuiButton(size + i, GuiButton.create(hotBarStack, Consumer { it.isCancelled = true }))
         }
         updatePageIndicator()
     }
 
     fun updatePageIndicator()
     {
-        val pageIndicatorStack = ItemCreator(Material.PAPER).setDisplayName("Page $pageNumber").create()
-        setGuiButton(size + 4, createGuiButton(pageIndicatorStack, Consumer { it.isCancelled = true }))
+        val pageIndicatorStack = if (parent == null)
+        {
+            ItemCreator(Material.PAPER).setDisplayName("Page $pageNumber").create()
+        } else
+        {
+            ItemCreator(Material.PLAYER_HEAD).setDisplayName("Page $pageNumber")
+                .setLore(listOf("Click here to go up")).setHeadOwner(
+                    Main.MHF_ArrowUP_Player
+                ).create()
+        }
+        setGuiButton(size + 4, GuiButton.create(pageIndicatorStack, Consumer {
+            it.isCancelled = true
+            parent?.displayInventory()
+        }))
     }
 
     fun isEmpty(): Boolean
@@ -60,6 +81,11 @@ class InventoryPage(val player: Player, val pageManager: PageManager, var pageNu
         return true
     }
 
+    fun removeItem(index: Int)
+    {
+        inventory.clear(index)
+    }
+
     fun setGuiButton(index: Int, guiButton: GuiButton)
     {
         buttons[index] = guiButton
@@ -73,11 +99,56 @@ class InventoryPage(val player: Player, val pageManager: PageManager, var pageNu
 
     fun executeListener(event: InventoryClickEvent)
     {
+        if (!allowStorage)
+        {
+            if (event.clickedInventory == event.whoClicked.inventory)
+            {
+                if (event.isShiftClick)
+                {
+                    val item = event.currentItem
+                    if (item != null && item.type != Material.AIR)
+                    {
+                        event.isCancelled = true
+                    }
+                }
+            } else
+            {
+                val item = event.cursor
+                if (item != null && item.type != Material.AIR)
+                {
+                    event.isCancelled = true
+                }
+            }
+
+            if (event.isCancelled)
+            {
+                return
+            }
+        }
+
         if (event.inventory != inventory)
         {
             return
         }
         getGuiButton(event.slot)?.listener?.accept(event)
+    }
+
+    fun executeListener(event: InventoryDragEvent)
+    {
+        if (!allowStorage)
+        {
+            val item = event.oldCursor
+            val size = event.inventory.size
+            for (i in event.rawSlots)
+            {
+                if (i < size)
+                {
+                    event.isCancelled = true
+                    return
+                }
+            }
+
+        }
     }
 
     fun createNextPageButton(itemStack: ItemStack): GuiButton
@@ -100,12 +171,6 @@ class InventoryPage(val player: Player, val pageManager: PageManager, var pageNu
         return button
     }
 
-    fun createGuiButton(itemStack: ItemStack, consumer: Consumer<InventoryClickEvent>): GuiButton
-    {
-        val button = GuiButton(itemStack)
-        button.listener = consumer
-        return button
-    }
 
     fun clear()
     {

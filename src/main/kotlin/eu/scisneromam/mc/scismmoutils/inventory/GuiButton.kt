@@ -15,4 +15,14 @@ class GuiButton(val itemStack: ItemStack)
 {
     var listener: Consumer<InventoryClickEvent>? = null
 
+    companion object
+    {
+        fun create(itemStack: ItemStack, consumer: Consumer<InventoryClickEvent>?): GuiButton
+        {
+            val button = GuiButton(itemStack)
+            button.listener = consumer
+            return button
+        }
+    }
+
 }

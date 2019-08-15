@@ -1,8 +1,10 @@
 package eu.scisneromam.mc.scismmoutils.inventory
 
 import org.bukkit.Material
+import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
+import org.bukkit.inventory.meta.SkullMeta
 
 /**
  * Project: ScisUtils
@@ -26,13 +28,33 @@ class ItemCreator(material: Material)
         return this
     }
 
+    fun setHeadOwner(owner: OfflinePlayer): ItemCreator
+    {
+        val itemMeta = itemStack.itemMeta as? SkullMeta
+        if ((itemStack.type == Material.PLAYER_HEAD || itemStack.type == Material.PLAYER_WALL_HEAD) && itemMeta != null)
+        {
+            itemMeta.owningPlayer = owner
+        }
+        return this
+    }
+
+    fun setLore(lore: List<String>): ItemCreator
+    {
+        val itemMeta = itemStack.itemMeta
+        if (itemMeta is Damageable)
+        {
+            itemMeta.lore = lore
+        }
+        return this
+    }
+
     fun setAmount(amount: Int): ItemCreator
     {
         itemStack.amount = amount
         return this
     }
 
-    fun setDurability(durability: Int) : ItemCreator
+    fun setDurability(durability: Int): ItemCreator
     {
         val itemMeta = itemStack.itemMeta
         if (itemMeta is Damageable)
