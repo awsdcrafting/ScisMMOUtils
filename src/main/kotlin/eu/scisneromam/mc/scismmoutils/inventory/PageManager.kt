@@ -13,17 +13,26 @@ import org.bukkit.inventory.ItemStack
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class PageManager(
+open class PageManager(
     val player: Player,
-    private val pageListener: PageListener,
+    protected val pageListener: PageListener,
     val name: String = "",
-    private val maxSize: Int = -1
+    var maxSize: Int = -1
 ) :
     InventoryHolder
 {
 
-    private val inventories: MutableList<InventoryPage> = ArrayList()
-    private var selectedInventory: Int = 0
+    protected val inventoryPages: MutableList<InventoryPage> = ArrayList()
+    var selectedInventory: Int = 0
+        set(value)
+        {
+            field = when
+            {
+                value >= inventoryPages.size -> inventoryPages.size - 1
+                value < 0 -> 0
+                else -> value
+            }
+        }
 
     init
     {
@@ -32,14 +41,14 @@ class PageManager(
 
     override fun getInventory(): Inventory
     {
-        return inventories[selectedInventory].inventory
+        return inventoryPages[selectedInventory].inventory
     }
 
     //todo fix ConcurrentModificationException
-    fun addItems(itemStacks: MutableCollection<ItemStack>)
+    open fun addItems(itemStacks: MutableCollection<ItemStack>)
     {
         val leftOver = ArrayList<ItemStack>()
-        for (inventory in inventories)
+        for (inventory in inventoryPages)
         {
             fillInventory(inventory.inventory, itemStacks, leftOver)
         }
@@ -58,7 +67,7 @@ class PageManager(
      * @param leftOver This will be used to temporary store the excess items, the excess items will be transferred into the itemStacks collection
      * @return nothing as all excess items are stored in the itemStacks collection
      */
-    private fun fillInventory(
+    protected fun fillInventory(
         inventory: Inventory,
         itemStacks: MutableCollection<ItemStack>,
         leftOver: MutableCollection<ItemStack> = ArrayList()
@@ -73,16 +82,16 @@ class PageManager(
         leftOver.clear()
     }
 
-    fun fillPlayerInventory()
+    open fun fillPlayerInventory()
     {
         val leftOver: MutableList<ItemStack> = ArrayList()
 
-        for (i in 0 until inventories[selectedInventory].size)
+        for (i in 0 until inventoryPages[selectedInventory].size)
         {
-            val item = inventories[selectedInventory].inventory.getItem(i) ?: continue
+            val item = inventoryPages[selectedInventory].inventory.getItem(i) ?: continue
             leftOver.addAll(player.inventory.addItem(item).values)
         }
-        inventories[selectedInventory].clear()
+        inventoryPages[selectedInventory].clear()
         cleanUpInventory()
 
         addItems(leftOver)
@@ -102,18 +111,18 @@ class PageManager(
 
     fun addInventory(inventoryPage: InventoryPage)
     {
-        if (maxSize > 0 && inventories.size >= maxSize)
+        if (maxSize > 0 && inventoryPages.size >= maxSize)
         {
-            inventories.add(inventoryPage)
+            inventoryPages.add(inventoryPage)
         }
     }
 
     fun cleanUpInventory(): Boolean
     {
-        if (selectedInventory > 0 && inventories[selectedInventory].isEmpty())
+        if (maxSize > 0 && inventoryPages.size > 1 && inventoryPages[selectedInventory].isEmpty())
         {
-            inventories.removeAt(selectedInventory)
-            selectedInventory--
+            inventoryPages.removeAt(selectedInventory)
+            selectPreviousInventory()
             return true
         }
         return false
@@ -121,7 +130,7 @@ class PageManager(
 
     fun cleanUpInventories()
     {
-        selectedInventory = inventories.size - 1
+        selectedInventory = inventoryPages.size - 1
         while (selectedInventory > 0)
         {
             cleanUpInventory()
@@ -131,7 +140,7 @@ class PageManager(
     fun selectNextInventory()
     {
         selectedInventory++
-        if (selectedInventory >= inventories.size)
+        if (selectedInventory >= inventoryPages.size)
         {
             selectedInventory = 0
         }
@@ -142,13 +151,17 @@ class PageManager(
         selectedInventory--
         if (selectedInventory < 0)
         {
-            selectedInventory = inventories.size - 1
+            selectedInventory = inventoryPages.size - 1
         }
     }
 
     fun displayNextInventory(delay: Long = 1)
     {
         cleanUpInventory()
+        if (selectedInventory == inventoryPages.size - 1 && selectedInventory < maxSize - 1)
+        {
+            createAndAddInventory()
+        }
         selectNextInventory()
         displayInventory(delay)
     }
@@ -164,7 +177,11 @@ class PageManager(
 
     fun displayInventory(delay: Long = 1)
     {
-        val inventory = inventories[selectedInventory].inventory
+        val inventoryPage = inventoryPages[selectedInventory]
+        inventoryPage.pageNumber = selectedInventory + 1
+        inventoryPage.updatePageIndicator()
+        val inventory = inventoryPage.inventory
+
         when (delay)
         {
             0L -> player.openInventory(inventory)
@@ -181,7 +198,7 @@ class PageManager(
 
     fun executeListener(event: InventoryClickEvent)
     {
-        inventories[selectedInventory].executeListener(event)
+        inventoryPages[selectedInventory].executeListener(event)
     }
 
 }

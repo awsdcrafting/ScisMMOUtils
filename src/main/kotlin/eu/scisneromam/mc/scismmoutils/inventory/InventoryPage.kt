@@ -15,7 +15,7 @@ import java.util.function.Consumer
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class InventoryPage(val player: Player, val pageManager: PageManager, val size: Int = 45)
+class InventoryPage(val player: Player, val pageManager: PageManager, var pageNumber: Int = 1, val size: Int = 45)
 {
     val inventory: Inventory = Bukkit.createInventory(pageManager, size + 9, pageManager.name)
     val buttons: MutableMap<Int, GuiButton> = HashMap()
@@ -27,40 +27,24 @@ class InventoryPage(val player: Player, val pageManager: PageManager, val size: 
 
     fun setUpHotbar()
     {
-        val leftStack = ItemStack(Material.ARROW)
-        val leftMeta = leftStack.itemMeta
-        if (leftMeta != null)
-        {
-            leftMeta.setDisplayName("Previous Page")
-
-
-            leftStack.itemMeta = leftMeta
-        }
-
-        val rightStack = ItemStack(Material.ARROW)
-        val rightMeta = rightStack.itemMeta
-        if (rightMeta != null)
-        {
-            rightMeta.setDisplayName("Next Page")
-
-
-            rightStack.itemMeta = rightMeta
-        }
+        val leftStack = ItemCreator(Material.ARROW).setDisplayName("Previous page").create()
+        val rightStack = ItemCreator(Material.ARROW).setDisplayName("Next page").create()
         val leftButton = createPreviousPageButton(leftStack)
         val rightButton = createNextPageButton(rightStack)
         setGuiButton(size, leftButton)
         setGuiButton(size + 8, rightButton)
-        val hotBarStack = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        val hotBarMeta = hotBarStack.itemMeta
-        if (hotBarMeta != null)
-        {
-            hotBarMeta.setDisplayName("")
-            hotBarStack.itemMeta = hotBarMeta
-        }
+        val hotBarStack = ItemCreator(Material.GRAY_STAINED_GLASS_PANE).setDisplayName("").create()
         for (i in 1..7)
         {
             setGuiButton(size + i, createGuiButton(hotBarStack, Consumer { it.isCancelled = true }))
         }
+        updatePageIndicator()
+    }
+
+    fun updatePageIndicator()
+    {
+        val pageIndicatorStack = ItemCreator(Material.PAPER).setDisplayName("Page $pageNumber").create()
+        setGuiButton(size + 4, createGuiButton(pageIndicatorStack, Consumer { it.isCancelled = true }))
     }
 
     fun isEmpty(): Boolean

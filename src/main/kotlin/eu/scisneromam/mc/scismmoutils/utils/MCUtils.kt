@@ -24,7 +24,7 @@ import kotlin.math.abs
 object MCUtils
 {
 
-    val DEBUG = false
+    const val DEBUG = false
 
     fun getBlocksInLine(player: Player, range: Int): List<Block>
     {

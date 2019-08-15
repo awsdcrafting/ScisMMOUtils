@@ -117,7 +117,7 @@ class HammerCommand(val main: Main) : BaseCommand()
     @CommandCompletion("info|give|show|list")
     fun onItems(player: Player, @Optional arg: String?)
     {
-        val itemSave = main.pageListener
+        val blockBreakListener = main.blockBreakListener
         if (arg == null)
         {
             player.sendPrefixedMessage("//todo")
@@ -126,8 +126,8 @@ class HammerCommand(val main: Main) : BaseCommand()
         {
             when (arg.toLowerCase())
             {
-                "give" -> itemSave.fillInventory(player)
-                "show" -> itemSave.openInventory(player)
+                "give" -> blockBreakListener.fillInventory(player)
+                "show" -> blockBreakListener.openInventory(player)
                 "list" ->
                 {
                     player.sendPrefixedMessage("//todo")
