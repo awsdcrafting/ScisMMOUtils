@@ -1,6 +1,6 @@
 package eu.scisneromam.mc.scismmoutils.database
 
-import eu.scisneromam.mc.scismmoutils.main.Main
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Transaction
@@ -15,13 +15,13 @@ import java.io.File
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class DBConnection(val main: Main)
+class DBConnection()
 {
 
     val breakXpFunction: BreakXPFunction = BreakXPFunction(this)
     val db by lazy {
-        main.dataFolder.mkdirs()
-        Database.connect("jdbc:sqlite:${File(main.dataFolder, "data.db").absolutePath}", driver = "org.sqlite.JDBC")
+        MAIN.dataFolder.mkdirs()
+        Database.connect("jdbc:sqlite:${File(MAIN.dataFolder, "data.db").absolutePath}", driver = "org.sqlite.JDBC")
     }
 
     fun <T> transaction(statement: Transaction.() -> T): T
@@ -47,7 +47,7 @@ class DBConnection(val main: Main)
 
     fun addListeners()
     {
-        main.registerListener(breakXpFunction)
+        MAIN.registerListener(breakXpFunction)
     }
 
     fun setupDB()

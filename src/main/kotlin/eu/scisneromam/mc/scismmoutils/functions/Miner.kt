@@ -1,6 +1,7 @@
 package eu.scisneromam.mc.scismmoutils.functions
 
 import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import eu.scisneromam.mc.scismmoutils.utils.dropsAreEmpty
 import eu.scisneromam.mc.scismmoutils.utils.isInMaxDistance
@@ -68,7 +69,7 @@ class Miner(override val listener: BlockBreakListener) : Function<BlockBreakEven
     override fun handle(event: BlockBreakEvent)
     {
         val material = event.block.blockData.material
-        val maxDistance = listener.main.dbConnection.breakXpFunction.getXPLevelFromDB(event.player.uniqueId).level
+        val maxDistance = MAIN.dbConnection.breakXpFunction.getXPLevelFromDB(event.player.uniqueId).level
         when
         {
             leaves.contains(material) -> findLocations(

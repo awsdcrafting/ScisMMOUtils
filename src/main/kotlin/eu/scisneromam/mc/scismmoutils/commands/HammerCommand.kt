@@ -4,7 +4,7 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandHelp
 import co.aikar.commands.annotation.*
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
-import eu.scisneromam.mc.scismmoutils.main.Main
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -21,14 +21,14 @@ import java.lang.Integer.min
 @CommandAlias("hammer")
 @CommandPermission("scisUtils.hammer.use")
 @Description("Hammer")
-class HammerCommand(val main: Main) : BaseCommand()
+class HammerCommand : BaseCommand()
 {
 
     @Default
     @Subcommand("toggle")
     fun onToggle(player: Player)
     {
-        val on = main.blockBreakListener.toggleFunction(player, main.blockBreakListener.hammer)
+        val on = MAIN.blockBreakListener.toggleFunction(player, MAIN.blockBreakListener.hammer)
         val msg = if (on)
         {
             "on"
@@ -52,7 +52,7 @@ class HammerCommand(val main: Main) : BaseCommand()
     @CommandCompletion("individually|square|cube")
     fun onMode(player: Player, @Optional arg: String?)
     {
-        val mode = main.blockBreakListener.hammer.modePerPlayer.getOrPut(player, { Hammer.Mode() })
+        val mode = MAIN.blockBreakListener.hammer.modePerPlayer.getOrPut(player, { Hammer.Mode() })
 
         if (arg == null)
         {
@@ -89,8 +89,8 @@ class HammerCommand(val main: Main) : BaseCommand()
     @Description("Sets the radius of the hammer")
     fun onRadius(player: Player, @Optional lrRad: Int?, @Optional udRad: Int?, @Optional depth: Int?)
     {
-        val mode = main.blockBreakListener.hammer.modePerPlayer.getOrPut(player, { Hammer.Mode() })
-        val level = main.dbConnection.breakXpFunction.getXPLevel(player.uniqueId).level
+        val mode = MAIN.blockBreakListener.hammer.modePerPlayer.getOrPut(player, { Hammer.Mode() })
+        val level = MAIN.dbConnection.breakXpFunction.getXPLevel(player.uniqueId).level
         if (lrRad == null && udRad == null && depth == null)
         {
         } else
@@ -117,7 +117,7 @@ class HammerCommand(val main: Main) : BaseCommand()
     @CommandCompletion("info|give|show|list")
     fun onItems(player: Player, @Optional arg: String?)
     {
-        val blockBreakListener = main.blockBreakListener
+        val blockBreakListener = MAIN.blockBreakListener
         if (arg == null)
         {
             player.sendPrefixedMessage("//todo")

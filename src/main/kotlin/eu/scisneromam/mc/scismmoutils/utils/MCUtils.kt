@@ -1,16 +1,13 @@
 package eu.scisneromam.mc.scismmoutils.utils
 
-import eu.scisneromam.mc.scismmoutils.main.Main
-import org.bukkit.Location
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.util.BlockIterator
-
-import java.util.ArrayList
+import java.util.*
 import kotlin.math.abs
 
 /**
@@ -43,7 +40,7 @@ object MCUtils
         return blockList
     }
 
-    fun breakBlock(main: Main, block: Block, player: Player, tool: ItemStack, debugName: String, debug: Boolean)
+    fun breakBlock(block: Block, player: Player, tool: ItemStack, debugName: String, debug: Boolean)
     {
         val drops = block.getDrops(tool)
         if (drops.isEmpty() || block.blockData.material == Material.AIR || drops.stream().allMatch { it -> it.type == Material.AIR })
@@ -85,7 +82,7 @@ object MCUtils
 
 
         debug("Breaking $block", debugName, debug)
-        main.nmsBlockBreak.breakBlock(player, block)
+        MAIN.nmsBlockBreak.breakBlock(player, block)
         debug("Broke $block", debugName, debug)
     }
 

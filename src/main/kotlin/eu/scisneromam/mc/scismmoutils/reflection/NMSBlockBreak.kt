@@ -1,5 +1,6 @@
 package eu.scisneromam.mc.scismmoutils.reflection
 
+import eu.scisneromam.mc.scismmoutils.main.Main
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import java.lang.reflect.Constructor
@@ -26,23 +27,25 @@ class NMSBlockBreak(val nmsLoader: NMSLoader)
     private lateinit var getHandleMethod: Method
     private lateinit var breakBlockMethod: Method
 
-    private val wasSuccessful = loadNMS()
-
     private fun loadNMS(): Boolean
     {
+        Main.MAIN.logger.info("Loading nms")
         entityPlayerClass = nmsLoader.getNMSClass("EntityPlayer") ?: return false
         playerInteractManagerClass = nmsLoader.getNMSClass("PlayerInteractManager") ?: return false
         playerInteractManagerField = nmsLoader.getField(entityPlayerClass, "playerInteractManager") ?: return false
         blockPositionClass = nmsLoader.getNMSClass("BlockPosition") ?: return false
         blockPositionConstructor =
-            nmsLoader.getConstructor(blockPositionClass, Integer::class.java, Integer::class.java, Integer::class.java)
-                ?: return false
+            nmsLoader.getConstructor(blockPositionClass, Integer.TYPE, Integer.TYPE, Integer.TYPE) ?: return false
         craftPlayerClass = nmsLoader.getCBClass("entity.CraftPlayer") ?: return false
         getHandleMethod = nmsLoader.getMethod(craftPlayerClass, "getHandle") ?: return false
         breakBlockMethod =
             nmsLoader.getMethod(playerInteractManagerClass, "breakBlock", blockPositionClass) ?: return false
+
+        Main.MAIN.logger.info("Successfully loaded nms")
         return true
     }
+
+    private val wasSuccessful = loadNMS()
 
 
     fun breakBlock(player: Player, block: Block)

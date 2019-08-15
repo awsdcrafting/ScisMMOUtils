@@ -12,12 +12,11 @@ import org.bukkit.inventory.ItemStack
  */
 class PageSortedPageManager(
     player: Player,
-    pageListener: PageListener,
     name: String = "",
     maxSize: Int = -1
-) : PageManager(player, pageListener, name, -1)
+) : PageManager(player, name, -1)
 {
-    val pageManager: PageManager = PageManager(player, pageListener, name, maxSize)
+    val pageManager: PageManager = PageManager(player, name, maxSize)
 
     override fun addItems(itemStacks: MutableCollection<ItemStack>)
     {

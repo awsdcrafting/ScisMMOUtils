@@ -4,12 +4,12 @@ import eu.scisneromam.mc.scismmoutils.functions.Function
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
 import eu.scisneromam.mc.scismmoutils.inventory.PageManager
-import eu.scisneromam.mc.scismmoutils.main.Main
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
+import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Location
-import org.bukkit.entity.Item
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -28,16 +28,8 @@ import kotlin.collections.ArrayList
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
+class BlockBreakListener : EventListener<BlockBreakEvent>()
 {
-
-    class HandledLocation(val location: Location)
-    {
-        var handledBreak: Boolean = false
-        var handledDrop: Boolean = false
-
-        fun isCompletelyHandled(): Boolean = handledBreak && handledDrop
-    }
 
     companion object
     {
@@ -46,7 +38,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
     var batchSizePerPlayer: Int = DEFAULT_BATCH_SIZE
     private val itemsPerPlayer: MutableMap<Player, MutableList<ItemStack>> = ConcurrentHashMap()
-    private val locations: MutableMap<Location, HandledLocation> = ConcurrentHashMap()
+    private val locations: MutableSet<HandledLocation> = ConcurrentHashMap.newKeySet()
     private val activatedFunctionsPerPlayer: MutableMap<Player, MutableSet<Function<BlockBreakEvent>>> =
         ConcurrentHashMap()
     private val pageManagers: MutableMap<Player, PageManager> = HashMap()
@@ -57,12 +49,21 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
 
     init
     {
-        batchSizePerPlayer = main.config.getInt("batchSizePerPlayer")
+        batchSizePerPlayer = MAIN.config.getInt("batchSizePerPlayer")
         if (batchSizePerPlayer == 0)
         {
             batchSizePerPlayer = DEFAULT_BATCH_SIZE
         }
 
+
+        MAIN.server.scheduler.scheduleSyncRepeatingTask(MAIN, { ->
+
+            for ((player, items) in itemsPerPlayer)
+            {
+                addItems(player, ArrayList(items))
+            }
+
+        }, 4L, 4L)
     }
 
 
@@ -80,25 +81,29 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
         }
     }
 
-    fun addBreakLocations(player: Player, locations: List<Location>)
+    fun addBreakLocations(player: Player, locations: List<Location>, sendMessage: Boolean = false)
     {
         MCUtils.debug("BreakLocations are getting added", "BatchBreaker")
-        val list = ArrayList(locations)
+        val list: MutableList<Location> = ArrayList()
+        list.addAll(locations)
         for (location in list)
         {
-            this.locations[location] = HandledLocation(location)
+            this.locations.add(HandledLocation(location))
         }
-        main.server.scheduler.runTask(main) {
+        MAIN.server.scheduler.scheduleSyncDelayedTask(MAIN) {
             ->
             for (location in list)
             {
                 MCUtils.breakBlock(
-                    main,
                     location.block,
                     player,
                     player.inventory.itemInMainHand,
                     "BatchBreaker", MCUtils.DEBUG
                 )
+            }
+            if (sendMessage)
+            {
+                player.sendPrefixedMessage("Finished breaking blocks")
             }
         }
     }
@@ -106,26 +111,28 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onItemDrops(event: BlockDropItemEvent)
     {
+        MCUtils.debug("handling event $event", "BlockDropManager", true)
         if (event.isCancelled)
         {
+            MCUtils.debug("drop event is cancelled", "BlockDropManager", true)
             return
+        }
+
+        MCUtils.debug("locations $locations", "BlockDropManager", true)
+
+        val loc = locations.find { it == event.block.location } ?: return
+
+        MCUtils.debug("loc was not null", "BlockDropManager", true)
+        loc.handledDrop = true
+        if (loc.isCompletelyHandled())
+        {
+            locations.remove(event.block.location)
         }
         event.isCancelled = true
 
-        val items: MutableList<Item> = ArrayList(event.items)
-        event.items.clear()
-        GlobalScope.launch {
-            val loc = locations.getOrDefault(event.block.location, null) ?: return@launch
+        itemsPerPlayer.getOrPut(event.player, { ArrayList() }).addAll(event.items.map { it.itemStack })
+        //event.items.clear()
 
-            loc.handledDrop = true
-            if (loc.isCompletelyHandled())
-            {
-                locations.remove(event.block.location)
-            }
-
-            itemsPerPlayer.getOrPut(event.player, { Collections.synchronizedList(ArrayList()) })
-                .addAll(items.map { it.itemStack })
-        }
 
     }
 
@@ -137,15 +144,17 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
             return
         }
 
-        MCUtils.debug("Handling event $event", "BatchBreaker")
+        MCUtils.debug("Handling event $event", "BatchBreaker", true)
 
-        val loc = locations.getOrDefault(event.block.location, null)
+        val loc = locations.find { it == event.block.location }
 
         if (loc != null)
         {
+            MCUtils.debug("Loc was not null", "BatchBreaker", true)
             loc.handledBreak = true
             if (loc.isCompletelyHandled())
             {
+                MCUtils.debug("Loc was completed", "BatchBreaker", true)
                 locations.remove(event.block.location)
             }
             return
@@ -176,7 +185,7 @@ class BlockBreakListener(main: Main) : EventListener<BlockBreakEvent>(main)
     }
 
     private fun getPageManager(player: Player) =
-        pageManagers.getOrPut(player, { PageManager(player, main.pageListener) })
+        pageManagers.getOrPut(player, { PageManager(player, "BlockBreak Inventory") })
 
     fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
     {

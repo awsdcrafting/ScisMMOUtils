@@ -29,6 +29,7 @@ class Main : JavaPlugin()
         private val r = ChatColor.RESET.toString()
         private val go = ChatColor.GOLD.toString()
         val PREFIX: String = "$r[${go}ScisUtils$r] "
+        lateinit var MAIN: Main
     }
 
     //nms
@@ -52,6 +53,8 @@ class Main : JavaPlugin()
     {
         logger.info("loading")
 
+        MAIN = this
+
         if (testOnly)
             return
 
@@ -59,15 +62,15 @@ class Main : JavaPlugin()
             NMSLoader(Bukkit.getServer().javaClass.getPackage().name.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[3])
         nmsBlockBreak = NMSBlockBreak(nmsLoader)
 
-        dbConnection = DBConnection(this)
+        dbConnection = DBConnection()
 
 
         //addListeners
         dbConnection.addListeners()
-        blockBreakListener = BlockBreakListener(this)
+        blockBreakListener = BlockBreakListener()
         registerListener(blockBreakListener)
 
-        pageListener = PageListener(this)
+        pageListener = PageListener()
         registerListener(pageListener)
 
         dbConnection.setupDB()
@@ -75,8 +78,8 @@ class Main : JavaPlugin()
         commandManager = PaperCommandManager(this)
         commandManager.enableUnstableAPI("help")
 
-        commandManager.registerCommand(HammerCommand(this))
-        commandManager.registerCommand(MinerCommand(this))
+        commandManager.registerCommand(HammerCommand())
+        commandManager.registerCommand(MinerCommand())
 
         logger.info("loaded")
     }

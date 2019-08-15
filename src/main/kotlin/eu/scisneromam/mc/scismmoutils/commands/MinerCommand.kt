@@ -3,7 +3,7 @@ package eu.scisneromam.mc.scismmoutils.commands
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandHelp
 import co.aikar.commands.annotation.*
-import eu.scisneromam.mc.scismmoutils.main.Main
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -19,20 +19,20 @@ import org.bukkit.entity.Player
 @CommandAlias("miner")
 @CommandPermission("scisUtils.miner.use")
 @Description("Miner")
-class MinerCommand(val main: Main) : BaseCommand()
+class MinerCommand() : BaseCommand()
 {
 
     @Default
     @Subcommand("toggle")
     fun onToggle(player: Player)
     {
-        if (main.dbConnection.breakXpFunction.getXPLevel(player.uniqueId).level < 3)
+        if (MAIN.dbConnection.breakXpFunction.getXPLevel(player.uniqueId).level < 3)
         {
             player.sendPrefixedMessage("To use miner you have to be break level 3")
             return
         }
 
-        val on = main.blockBreakListener.toggleFunction(player, main.blockBreakListener.miner)
+        val on = MAIN.blockBreakListener.toggleFunction(player, MAIN.blockBreakListener.miner)
         val msg = if (on)
         {
             "on"

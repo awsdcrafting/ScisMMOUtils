@@ -1,6 +1,5 @@
 package eu.scisneromam.mc.scismmoutils.listener
 
-import eu.scisneromam.mc.scismmoutils.main.Main
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -12,7 +11,7 @@ import org.bukkit.event.Listener
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-abstract class EventListener<E : Event>(val main: Main) : Listener
+abstract class EventListener<E : Event> : Listener
 {
     @EventHandler
     abstract fun onEvent(event: E)

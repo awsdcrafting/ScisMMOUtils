@@ -81,7 +81,7 @@ class NMSLoader(version: String)
     {
         try
         {
-            clazz.getConstructor(*paramTypes)
+            return clazz.getConstructor(*paramTypes)
         } catch (e: NoSuchMethodException)
         {
 

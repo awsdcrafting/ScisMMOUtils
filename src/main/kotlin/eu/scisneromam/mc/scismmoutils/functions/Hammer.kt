@@ -4,7 +4,6 @@ import eu.scisneromam.mc.scismmoutils.listener.BlockBreakListener
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils.getBlocksInLine
 import eu.scisneromam.mc.scismmoutils.utils.dropsAreEmpty
-import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -93,38 +92,32 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
 
         var lrMod = 0
         var udMod = 0
-        val subSets = if ((lrRad * 2) * (udRad * 2) * (depth) > listener.batchSizePerPlayer * 25)
+        val subSets = (lrRad * 2) * (udRad * 2) * (depth) > listener.batchSizePerPlayer * 25
+        if (subSets)
         {
-            player.sendPrefixedMessage("Whatever you are doing, you are breaking sooo many blocks, that we are splitting it into smaller subsets xD")
-            true
-        } else
-        {
-            false
+            //player.sendPrefixedMessage("")
         }
-        var subSet = 1
+
+        val playerFacing = player.facing
 
         for (mod1 in -lrRad..lrRad)
         {
-            if (subSets)
-            {
-                player.sendPrefixedMessage("${mod1 + lrRad} of ${lrRad * 2}")
-            }
             MCUtils.debug("$mod1 of $lrRad", "Hammer")
-            when (player.facing)
+            when (playerFacing)
             {
                 BlockFace.NORTH -> lrMod = mod1
                 BlockFace.SOUTH -> lrMod = -mod1
-                BlockFace.EAST -> udMod = mod1
-                BlockFace.WEST -> udMod = -mod1
+                BlockFace.EAST -> lrMod = mod1
+                BlockFace.WEST -> lrMod = -mod1
             }
             for (mod2 in -udRad..udRad)
             {
-                when (player.facing)
+                when (playerFacing)
                 {
-                    BlockFace.NORTH -> udMod = mod2
+                    BlockFace.NORTH -> udMod = -mod2
                     BlockFace.SOUTH -> udMod = -mod2
-                    BlockFace.EAST -> lrMod = mod2
-                    BlockFace.WEST -> lrMod = -mod2
+                    BlockFace.EAST -> udMod = -mod2
+                    BlockFace.WEST -> udMod = -mod2
                 }
 
                 for (mod3 in depth downTo 0)
@@ -183,10 +176,6 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
                     }
                     if (list.size >= listener.batchSizePerPlayer)
                     {
-                        if (subSets)
-                        {
-                            player.sendPrefixedMessage("Subset ${subSet++}")
-                        }
                         listener.addBreakLocations(player, list)
                         list.clear()
                     }
@@ -195,7 +184,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
             }
         }
         list.add(middleBlock)
-        listener.addBreakLocations(player, list)
+        listener.addBreakLocations(player, list, subSets)
     }
 
 

@@ -1,5 +1,6 @@
 package eu.scisneromam.mc.scismmoutils.inventory
 
+import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
@@ -15,7 +16,6 @@ import org.bukkit.inventory.ItemStack
  */
 open class PageManager(
     val player: Player,
-    protected val pageListener: PageListener,
     val name: String = "",
     var maxSize: Int = -1
 ) :
@@ -23,6 +23,12 @@ open class PageManager(
 {
 
     protected val inventoryPages: MutableList<InventoryPage> = ArrayList()
+
+    init
+    {
+        createAndAddInventory()
+    }
+
     var selectedInventory: Int = 0
         set(value)
         {
@@ -34,10 +40,6 @@ open class PageManager(
             }
         }
 
-    init
-    {
-        createAndAddInventory()
-    }
 
     override fun getInventory(): Inventory
     {
@@ -111,7 +113,7 @@ open class PageManager(
 
     fun addInventory(inventoryPage: InventoryPage)
     {
-        if (maxSize > 0 && inventoryPages.size >= maxSize)
+        if (!(maxSize > 0 && inventoryPages.size >= maxSize))
         {
             inventoryPages.add(inventoryPage)
         }
@@ -185,11 +187,11 @@ open class PageManager(
         when (delay)
         {
             0L -> player.openInventory(inventory)
-            1L -> pageListener.main.server.scheduler.runTask(
-                pageListener.main
+            1L -> MAIN.server.scheduler.runTask(
+                MAIN
             ) { -> player.openInventory(inventory) }
-            else -> pageListener.main.server.scheduler.runTaskLater(
-                pageListener.main,
+            else -> MAIN.server.scheduler.runTaskLater(
+                MAIN,
                 { -> player.openInventory(inventory) },
                 delay
             )
