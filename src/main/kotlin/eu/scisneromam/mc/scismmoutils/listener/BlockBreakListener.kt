@@ -111,18 +111,12 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onItemDrops(event: BlockDropItemEvent)
     {
-        MCUtils.debug("handling event $event", "BlockDropManager", true)
         if (event.isCancelled)
         {
-            MCUtils.debug("drop event is cancelled", "BlockDropManager", true)
             return
         }
 
-        MCUtils.debug("locations $locations", "BlockDropManager", true)
-
         val loc = locations.find { it == event.block.location } ?: return
-
-        MCUtils.debug("loc was not null", "BlockDropManager", true)
         loc.handledDrop = true
         if (loc.isCompletelyHandled())
         {
@@ -144,17 +138,13 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
             return
         }
 
-        MCUtils.debug("Handling event $event", "BatchBreaker", true)
-
         val loc = locations.find { it == event.block.location }
 
         if (loc != null)
         {
-            MCUtils.debug("Loc was not null", "BatchBreaker", true)
             loc.handledBreak = true
             if (loc.isCompletelyHandled())
             {
-                MCUtils.debug("Loc was completed", "BatchBreaker", true)
                 locations.remove(event.block.location)
             }
             return
