@@ -92,7 +92,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
 
         var lrMod = 0
         var udMod = 0
-        val subSets = (lrRad * 2) * (udRad * 2) * (depth) > listener.batchSizePerPlayer * 25
+        val subSets = (lrRad * 2) * (udRad * 2) * (depth) > listener.batchSize * 25
         if (subSets)
         {
             //player.sendPrefixedMessage("")
@@ -174,7 +174,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
                             }
                         }
                     }
-                    if (list.size >= listener.batchSizePerPlayer)
+                    if (list.size >= listener.batchSize)
                     {
                         listener.addBreakLocations(player, list)
                         list.clear()

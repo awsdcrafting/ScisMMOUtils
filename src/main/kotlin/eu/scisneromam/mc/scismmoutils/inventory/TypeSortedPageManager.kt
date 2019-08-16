@@ -27,9 +27,10 @@ class TypeSortedPageManager(
     val subMaxSize = maxSize
     val subSizePerPage = sizePerPage
     val subAllowStorage = allowStorage
+    val subName = name
 
     fun createPageManager(): PageManager =
-        PageSortedPageManager(player, name, this, subMaxSize, subSizePerPage, subAllowStorage)
+        PageSortedPageManager(player, subName, this, subMaxSize, subSizePerPage, subAllowStorage)
 
     var lastSlot: Pair<Int, Int> = Pair(0, -1)
 

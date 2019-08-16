@@ -21,7 +21,7 @@ class PageSortedPageManager(
     maxSize: Int = -1,
     sizePerPage: Int = 45,
     allowStorage: Boolean = true
-) : PageManager(player, name, parent, -1, 45, false)
+) : PageManager(player, "$name Pages", parent, -1, 45, false)
 {
     val pageManager: PageManager = PageManager(player, name, this, maxSize, sizePerPage, allowStorage)
 

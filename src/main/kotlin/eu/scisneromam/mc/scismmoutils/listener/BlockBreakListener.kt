@@ -4,11 +4,9 @@ import eu.scisneromam.mc.scismmoutils.functions.Function
 import eu.scisneromam.mc.scismmoutils.functions.Hammer
 import eu.scisneromam.mc.scismmoutils.functions.Miner
 import eu.scisneromam.mc.scismmoutils.inventory.PageManager
-import eu.scisneromam.mc.scismmoutils.inventory.PageSortedPageManager
 import eu.scisneromam.mc.scismmoutils.inventory.TypeSortedPageManager
 import eu.scisneromam.mc.scismmoutils.main.Main.Companion.MAIN
 import eu.scisneromam.mc.scismmoutils.utils.MCUtils
-import eu.scisneromam.mc.scismmoutils.utils.sendPrefixedMessage
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Location
@@ -22,6 +20,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.collections.ArrayList
+import kotlin.math.min
 
 /**
  * Project: ScisUtils
@@ -35,10 +34,12 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
 
     companion object
     {
-        const val DEFAULT_BATCH_SIZE: Int = 250
+        const val DEFAULT_BATCH_SIZE: Int = 2_500
     }
 
-    var batchSizePerPlayer: Int = DEFAULT_BATCH_SIZE
+    var batchSize: Int = DEFAULT_BATCH_SIZE
+    var batchSizePerPlayer: Int = batchSize / 10
+    private val locationsPerPlayer: MutableMap<Player, MutableSet<Location>> = ConcurrentHashMap()
     private val itemsPerPlayer: MutableMap<Player, MutableList<ItemStack>> = ConcurrentHashMap()
     private val locations: MutableSet<HandledLocation> = ConcurrentHashMap.newKeySet()
     private val activatedFunctionsPerPlayer: MutableMap<Player, MutableSet<Function<BlockBreakEvent>>> =
@@ -51,24 +52,48 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
 
     init
     {
+        batchSize = MAIN.config.getInt("batchSizePerPlayer")
+        if (batchSize == 0)
+        {
+            batchSize = DEFAULT_BATCH_SIZE
+        }
         batchSizePerPlayer = MAIN.config.getInt("batchSizePerPlayer")
         if (batchSizePerPlayer == 0)
         {
-            batchSizePerPlayer = DEFAULT_BATCH_SIZE
+            batchSizePerPlayer = batchSize / 10
         }
 
 
-        MAIN.server.scheduler.scheduleSyncRepeatingTask(MAIN, { ->
-
-            for ((player, items) in itemsPerPlayer)
+        MAIN.server.scheduler.scheduleSyncRepeatingTask(MAIN, {
+            var todo = batchSize
+            var maxTodo: Int
+            do
             {
-                val itemsList = ArrayList(items)
-                items.removeAll(itemsList)
-                addItems(player, itemsList)
+                maxTodo = 0
+                for ((player, set) in locationsPerPlayer)
+                {
+                    maxTodo += set.size
+                    val max = min(min(batchSizePerPlayer, todo), set.size)
 
-            }
-
-        }, 4L, 4L)
+                    val sub = set.take(max)
+                    sub.forEach { location: Location ->
+                        MCUtils.breakBlock(
+                            location.block,
+                            player,
+                            player.inventory.itemInMainHand,
+                            "BatchBreaker", MCUtils.DEBUG
+                        )
+                    }
+                    set.removeAll(sub)
+                    todo -= max
+                    val items = itemsPerPlayer.remove(player)
+                    if (items != null && items.isNotEmpty())
+                    {
+                        addItems(player, items)
+                    }
+                }
+            } while (todo > 0 && maxTodo > 0)
+        }, 2L, 2L)
     }
 
 
@@ -95,22 +120,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
         {
             this.locations.add(HandledLocation(location))
         }
-        MAIN.server.scheduler.runTask(MAIN) {
-            ->
-            for (location in list)
-            {
-                MCUtils.breakBlock(
-                    location.block,
-                    player,
-                    player.inventory.itemInMainHand,
-                    "BatchBreaker", MCUtils.DEBUG
-                )
-            }
-            if (sendMessage)
-            {
-                player.sendPrefixedMessage("Finished breaking blocks")
-            }
-        }
+        locationsPerPlayer.getOrPut(player, { ConcurrentHashMap.newKeySet() }).addAll(locations)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
