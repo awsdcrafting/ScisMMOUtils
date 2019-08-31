@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockDropItemEvent
 import org.bukkit.inventory.ItemStack
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.collections.ArrayList
 import kotlin.math.min
@@ -40,7 +41,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
     var batchSize: Int = DEFAULT_BATCH_SIZE
     var batchSizePerPlayer: Int = batchSize / 10
     private val locationsPerPlayer: MutableMap<Player, MutableSet<Location>> = ConcurrentHashMap()
-    private val itemsPerPlayer: MutableMap<Player, MutableList<ItemStack>> = ConcurrentHashMap()
+    private val itemsPerPlayer: MutableMap<Player, MutableCollection<ItemStack>> = ConcurrentHashMap()
     private val locations: MutableSet<HandledLocation> = ConcurrentHashMap.newKeySet()
     private val activatedFunctionsPerPlayer: MutableMap<Player, MutableSet<Function<BlockBreakEvent>>> =
         ConcurrentHashMap()
@@ -86,11 +87,6 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
                     }
                     set.removeAll(sub)
                     todo -= max
-                    val items = itemsPerPlayer.remove(player)
-                    if (items != null && items.isNotEmpty())
-                    {
-                        addItems(player, items)
-                    }
                 }
             } while (todo > 0 && maxTodo > 0)
         }, 2L, 2L)
@@ -111,7 +107,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
         }
     }
 
-    fun addBreakLocations(player: Player, locations: List<Location>, sendMessage: Boolean = false)
+    fun addBreakLocations(player: Player, locations: List<Location>)
     {
         MCUtils.debug("BreakLocations are getting added", "BatchBreaker")
         val list: MutableList<Location> = ArrayList()
@@ -139,7 +135,7 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
         }
         event.isCancelled = true
 
-        itemsPerPlayer.getOrPut(event.player, { ArrayList() }).addAll(event.items.map { it.itemStack })
+        itemsPerPlayer.getOrPut(event.player, { ConcurrentLinkedQueue() }).addAll(event.items.map { it.itemStack })
         //event.items.clear()
     }
 
@@ -190,18 +186,24 @@ class BlockBreakListener : EventListener<BlockBreakEvent>()
     private fun getPageManager(player: Player) =
         pageManagers.getOrPut(player, { TypeSortedPageManager(player, "BlockBreak Inventory", allowStorage = false) })
 
-    fun addItems(player: Player, itemStacks: MutableCollection<ItemStack>)
+    fun addItems(player: Player)
     {
-        getPageManager(player).addItems(itemStacks)
+        val items = itemsPerPlayer.remove(player)
+        if (items != null && items.isNotEmpty())
+        {
+            getPageManager(player).addItems(items)
+        }
     }
 
     fun fillInventory(player: Player)
     {
+        addItems(player)
         getPageManager(player).fillPlayerInventory()
     }
 
     fun openInventory(player: Player)
     {
+        addItems(player)
         getPageManager(player).displayInventory()
     }
 

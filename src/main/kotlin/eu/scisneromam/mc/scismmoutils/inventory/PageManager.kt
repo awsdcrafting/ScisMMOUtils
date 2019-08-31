@@ -84,42 +84,38 @@ open class PageManager(
         return true
     }
 
-    //todo fix ConcurrentModificationException
-    open fun addItems(itemStacks: MutableCollection<ItemStack>)
+    open fun addItems(itemStacks: Collection<ItemStack>)
     {
-        val leftOver = ArrayList<ItemStack>()
+        var toAdd = itemStacks
         for (inventory in inventoryPages)
         {
-            fillInventory(inventory.inventory, itemStacks, leftOver)
+            toAdd = fillInventory(inventory.inventory, toAdd)
         }
-        while (itemStacks.isNotEmpty())
+        while (toAdd.isNotEmpty())
         {
             val inventory = createAndAddInventory()
-            fillInventory(inventory.inventory, itemStacks, leftOver)
+            toAdd = fillInventory(inventory.inventory, toAdd)
         }
     }
 
     /**
      * Attempts to fill the inventory with the provided itemStacks
-     * All excess items are returned in the provided itemStacks collection
+     * All excess items are returned in a MutableCollection
      * @param inventory The inventory to fill
-     * @param itemStacks The itemStacks to fill the inventory with, excess items will be returned in this list
-     * @param leftOver This will be used to temporary store the excess items, the excess items will be transferred into the itemStacks collection
-     * @return nothing as all excess items are stored in the itemStacks collection
+     * @param itemStacks The itemStacks to fill the inventory with
+     * @return Excess items as a MutableCollection
      */
     protected fun fillInventory(
         inventory: Inventory,
-        itemStacks: MutableCollection<ItemStack>,
-        leftOver: MutableCollection<ItemStack> = ArrayList()
-    )
+        itemStacks: Collection<ItemStack>
+    ): MutableCollection<ItemStack>
     {
+        val leftOver: MutableCollection<ItemStack> = ArrayList()
         for (itemStack in itemStacks)
         {
             leftOver.addAll(inventory.addItem(itemStack).values)
         }
-        itemStacks.clear()
-        itemStacks.addAll(leftOver)
-        leftOver.clear()
+        return leftOver
     }
 
     open fun fillPlayerInventory()

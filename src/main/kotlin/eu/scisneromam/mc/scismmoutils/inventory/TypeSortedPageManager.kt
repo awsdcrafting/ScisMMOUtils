@@ -41,7 +41,7 @@ class TypeSortedPageManager(
 
     }
 
-    override fun addItems(itemStacks: MutableCollection<ItemStack>)
+    override fun addItems(itemStacks: Collection<ItemStack>)
     {
         val map = itemStacks.groupBy { it.type }
         for ((type, list) in map)

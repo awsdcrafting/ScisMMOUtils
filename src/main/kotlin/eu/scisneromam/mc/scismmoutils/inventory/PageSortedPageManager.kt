@@ -32,7 +32,7 @@ class PageSortedPageManager(
         addButton(createButton(0))
     }
 
-    override fun addItems(itemStacks: MutableCollection<ItemStack>)
+    override fun addItems(itemStacks: Collection<ItemStack>)
     {
         pageManager.addItems(itemStacks)
     }

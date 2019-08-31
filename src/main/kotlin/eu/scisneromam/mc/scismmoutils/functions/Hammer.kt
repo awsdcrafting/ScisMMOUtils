@@ -10,7 +10,10 @@ import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.inventory.ItemStack
+import java.time.Duration
+import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 /**
  * Project: ScisUtils
@@ -21,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEvent>(FunctionType.HAMMER, listener)
 {
-
     val modePerPlayer: MutableMap<Player, Mode> = ConcurrentHashMap()
 
 
@@ -39,7 +41,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
 
         val blockList = getBlocksInLine(event.player, 10)
 
-        val blockFace: BlockFace = if (blockList[blockList.size - 1].location == middle)
+        if (blockList.size >= 2 && blockList[blockList.size - 1].location == middle)
         {
             middle.block.getFace(blockList[blockList.size - 2]) // opposite of player facing
         } else
@@ -184,7 +186,7 @@ class Hammer(override val listener: BlockBreakListener) : Function<BlockBreakEve
             }
         }
         list.add(middleBlock)
-        listener.addBreakLocations(player, list, subSets)
+        listener.addBreakLocations(player, list)
     }
 
 
