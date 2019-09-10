@@ -19,9 +19,6 @@ import java.util.*
 class BreakXPFunction(database: DBConnection, cache: Boolean = true) : XPFunction<BreakXPLevelEntity>(database, cache)
 {
 
-
-    private val map: MutableMap<UUID, XPLevel> = HashMap()
-
     override fun getXPLevelEntity(uuid: UUID): BreakXPLevelEntity
     {
         return database.transaction {
@@ -45,19 +42,16 @@ class BreakXPFunction(database: DBConnection, cache: Boolean = true) : XPFunctio
         }
     }
 
-    override fun save()
-    {
-        map.forEach { (_, xpLevel) -> save(xpLevel) }
-    }
-
-    override fun save(xpLevel: XPLevel)
+    override fun save(xpLevel: XPLevel, flushCache: Boolean)
     {
         database.transaction {
             val entity = getXPLevelEntity(xpLevel.uuid)
             entity.level = xpLevel.level
             entity.xp = xpLevel.xp
-
-            flushCache()
+            if (flushCache)
+            {
+                flushCache()
+            }
         }
     }
 

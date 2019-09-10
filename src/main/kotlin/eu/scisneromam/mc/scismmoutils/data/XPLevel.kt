@@ -12,29 +12,50 @@ import kotlin.math.pow
  */
 class XPLevel(
     val uuid: UUID,
-    level: Int = 1,
-    xp: Long = 0,
+    var level: Int = 1,
+    var xp: Long = 0,
     private val mathFunction: (Int) -> Long = MathFunctions.DEFAULT.value
 )
 {
-    var level: Int = level
-        private set
 
-    var xp: Long = xp
-        private set
+    fun addLevel(level: Int): XPLevel
+    {
+        this.level += level
+        adjustLevel()
+        return this
+    }
+
+    fun removeLevel(level: Int): XPLevel
+    {
+        this.level -= level
+        adjustLevel()
+        return this
+    }
+
+    fun adjustLevel(): XPLevel
+    {
+        if (xp < 0)
+        {
+            removeXP(0)
+        } else
+        {
+            addXP(0)
+        }
+        return this
+    }
 
     fun addXP(xp: Long): XPLevel
     {
-        val summed = this.xp + xp
-        val xpToNextLevel = xpToNextLevel()
-        this.xp = if (summed > xpToNextLevel)
+        var summed = this.xp + xp
+        var xpToNextLevel = xpToNextLevel()
+
+        while (summed > xpToNextLevel)
         {
             this.level++
-            summed - xpToNextLevel
-        } else
-        {
-            summed
+            summed -= xpToNextLevel
+            xpToNextLevel = xpToNextLevel()
         }
+        this.xp = summed
         return this
     }
 
@@ -48,6 +69,32 @@ class XPLevel(
         return XPLevel(uuid, level, xp).addXP(n)
     }
 
+    fun removeXP(xp: Long): XPLevel
+    {
+        var minus = this.xp - xp
+        while (minus < 0)
+        {
+            this.level--
+            if (level == 1)
+            {
+                minus = 0
+                break
+            }
+            minus = xpToNextLevel() - minus
+        }
+        this.xp = minus
+        return this
+    }
+
+    operator fun minusAssign(n: Long)
+    {
+        removeXP(n)
+    }
+
+    operator fun minus(n: Long): XPLevel
+    {
+        return XPLevel(uuid, level, xp).removeXP(n)
+    }
 
     fun xpToNextLevel(): Long
     {

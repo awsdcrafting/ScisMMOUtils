@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.io.File
+import java.sql.Connection
 
 /**
  * Project: ScisUtils
@@ -15,13 +16,30 @@ import java.io.File
  * ---------------------------------------------------------------------
  * Copyright © 2019 | scisneromam | All rights reserved.
  */
-class DBConnection()
+class DBConnection(val mode: String = "sqlite")
 {
 
     val breakXpFunction: BreakXPFunction = BreakXPFunction(this)
     val db by lazy {
+        when (mode)
+        {
+            "mysql" -> mysqlConnection()
+            else -> sqliteConnection()
+        }
+    }
+
+    private fun sqliteConnection(): Database
+    {
         MAIN.dataFolder.mkdirs()
-        Database.connect("jdbc:sqlite:${File(MAIN.dataFolder, "data.db").absolutePath}", driver = "org.sqlite.JDBC")
+        val db =
+            Database.connect("jdbc:sqlite:${File(MAIN.dataFolder, "data.db").absolutePath}", driver = "org.sqlite.JDBC")
+        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+        return db
+    }
+
+    private fun mysqlConnection(): Database
+    {
+        TODO()
     }
 
     fun <T> transaction(statement: Transaction.() -> T): T

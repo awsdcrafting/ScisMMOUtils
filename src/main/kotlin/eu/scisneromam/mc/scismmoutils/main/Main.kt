@@ -94,9 +94,7 @@ class Main : JavaPlugin()
     {
         dbConnection.saveAll()
 
-        MCUtils.debug(dbConnection.transaction {
-            BreakXPLevelEntity.all().map { it.toXPLevel().toString() }.joinToString { "\n" }
-        }, "Main")
+
     }
 
     fun registerListener(listener: Listener)
